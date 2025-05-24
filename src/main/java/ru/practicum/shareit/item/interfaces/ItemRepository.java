@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.interfaces;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.item.Item;
 
@@ -16,5 +17,5 @@ public interface ItemRepository {
 
     List<Item> findAllOwnerItems(long ownerId);
 
-    List<Item> findAllAvailableItemsByNameContains(String text);
+    List<Item> findAllAvailableItemsByNameContains(@NotNull String text);
 }

@@ -9,6 +9,8 @@ import ru.practicum.shareit.user.interfaces.UserMapper;
 import ru.practicum.shareit.user.interfaces.UserRepository;
 import ru.practicum.shareit.user.interfaces.UserService;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -18,26 +20,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto addNewUser(UserDto user) throws UserExists {
-        try {
-            User newUser = mapper.toUser(user);
-            newUser = userRepository.save(newUser);
-            return mapper.toUserDto(newUser);
-        } catch (IllegalArgumentException e) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new UserExists();
         }
+        User newUser = mapper.toUser(user);
+        newUser = userRepository.save(newUser);
+        return mapper.toUserDto(newUser);
     }
 
     @Override
     public UserDto updateUser(long userId, UserDto userData) throws UserNotFound, UserExists {
-        try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFound(userId));
-            if (userData.getName() != null) user = user.toBuilder().name(userData.getName()).build();
-            if (userData.getEmail() != null) user = user.toBuilder().email(userData.getEmail()).build();
-            userRepository.save(user);
-            return mapper.toUserDto(user);
-        } catch (IllegalArgumentException e) {
-            throw new UserExists();
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFound(userId));
+        if (userData.getName() != null) {
+            user = user.toBuilder().name(userData.getName()).build();
         }
+        if (userData.getEmail() != null) {
+            Optional<User> userByEmail = userRepository.findByEmail(userData.getEmail());
+            if (userByEmail.isPresent() && userByEmail.get().getId() != userId) {
+                throw new UserExists();
+            }
+            user = user.toBuilder().email(userData.getEmail()).build();
+        }
+        userRepository.save(user);
+        return mapper.toUserDto(user);
     }
 
     @Override

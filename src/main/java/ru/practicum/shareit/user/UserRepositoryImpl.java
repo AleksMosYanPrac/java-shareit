@@ -29,6 +29,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return userCollection.values().stream().filter(u -> u.getEmail().equals(email)).findFirst();
+    }
+
+    @Override
     public void delete(User user) {
         userCollection.remove(user.getId());
     }
