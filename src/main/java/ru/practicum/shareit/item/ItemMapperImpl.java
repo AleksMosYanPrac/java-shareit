@@ -1,8 +1,13 @@
 package ru.practicum.shareit.item;
 
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.booking.dto.BookingShort;
+import ru.practicum.shareit.item.dto.CommentShort;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInfo;
 import ru.practicum.shareit.item.interfaces.ItemMapper;
+
+import java.util.List;
 
 @Component
 public class ItemMapperImpl implements ItemMapper {
@@ -25,5 +30,21 @@ public class ItemMapperImpl implements ItemMapper {
         dto.setDescription(item.getDescription());
         dto.setAvailable(item.getAvailable());
         return dto;
+    }
+
+    @Override
+    public ItemInfo toItemInfo(Item item,
+                               BookingShort lastBooking,
+                               BookingShort nextBooking,
+                               List<CommentShort> comments) {
+        ItemInfo itemInfo = new ItemInfo();
+        itemInfo.setId(item.getId());
+        itemInfo.setName(item.getName());
+        itemInfo.setDescription(item.getDescription());
+        itemInfo.setAvailable(item.getAvailable());
+        itemInfo.setLastBooking(lastBooking);
+        itemInfo.setNextBooking(nextBooking);
+        itemInfo.setComments(comments);
+        return itemInfo;
     }
 }

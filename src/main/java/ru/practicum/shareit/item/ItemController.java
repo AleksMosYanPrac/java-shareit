@@ -2,12 +2,16 @@ package ru.practicum.shareit.item;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInfo;
+import ru.practicum.shareit.item.exceptions.CommentNotExists;
 import ru.practicum.shareit.item.exceptions.ItemNotFound;
 import ru.practicum.shareit.item.interfaces.ItemService;
 import ru.practicum.shareit.user.exceptions.UserNotFound;
@@ -41,7 +45,7 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    ItemDto getItem(@PathVariable long itemId) throws ItemNotFound {
+    ItemInfo getItem(@PathVariable long itemId) throws ItemNotFound {
         return itemService.getItemById(itemId);
     }
 
@@ -51,8 +55,16 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    List<ItemDto> getSearchItems(@RequestParam String text) {
+    List<ItemDto> getSearchItems(@RequestParam @NotNull String text) {
         return itemService.getAvailableItemsByNameContains(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    CommentDto postCommentToItem(@RequestHeader("X-Sharer-User-Id") long userId,
+                                 @PathVariable long itemId,
+                                 @RequestBody CommentDto commentDto)
+            throws UserNotFound, ItemNotFound, CommentNotExists {
+        return itemService.addUserCommentToItem(userId, itemId, commentDto);
     }
 
     @ExceptionHandler(UserNotFound.class)
@@ -69,6 +81,14 @@ public class ItemController {
         body.put("message", exception.getMessage());
         log.info("Item not found: {}", body);
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(CommentNotExists.class)
+    ResponseEntity<Map<String, String>> onCommentNotExists(CommentNotExists exception) {
+        Map<String, String> body = new HashMap<>();
+        body.put("message", exception.getMessage());
+        log.info("Commenting not exists: {}", body);
+        return new ResponseEntity<>(body, BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
