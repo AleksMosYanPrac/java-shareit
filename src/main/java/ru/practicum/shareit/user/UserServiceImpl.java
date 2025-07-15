@@ -2,11 +2,11 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.exceptions.UserExists;
 import ru.practicum.shareit.user.exceptions.UserNotFound;
 import ru.practicum.shareit.user.interfaces.UserMapper;
-import ru.practicum.shareit.user.interfaces.UserRepository;
 import ru.practicum.shareit.user.interfaces.UserService;
 
 import java.util.Optional;
@@ -18,6 +18,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
 
+    @Transactional
     @Override
     public UserDto addNewUser(UserDto user) throws UserExists {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
@@ -28,6 +29,7 @@ public class UserServiceImpl implements UserService {
         return mapper.toUserDto(newUser);
     }
 
+    @Transactional
     @Override
     public UserDto updateUser(long userId, UserDto userData) throws UserNotFound, UserExists {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFound(userId));

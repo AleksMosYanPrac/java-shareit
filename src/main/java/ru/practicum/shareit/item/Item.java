@@ -1,15 +1,23 @@
 package ru.practicum.shareit.item;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Entity
+@Getter
+@Setter
+@Table(name = "items", schema = "public")
 public class Item {
 
+   @Id
+   @GeneratedValue(strategy = GenerationType.IDENTITY)
    private Long id;
 
    @NotNull
+   @Column(name = "owner_id")
    private Long ownerId;
 
    @NotBlank
@@ -20,4 +28,8 @@ public class Item {
 
    @NotNull
    private Boolean available;
+
+    public boolean isAvailable() {
+       return available;
+    }
 }
