@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingRequest;
-import ru.practicum.shareit.booking.exceptions.BookingNotAvailable;
+import ru.practicum.shareit.booking.exceptions.ItemNotAvailable;
 import ru.practicum.shareit.booking.exceptions.BookingNotFound;
 import ru.practicum.shareit.booking.interfaces.BookingService;
 import ru.practicum.shareit.item.exceptions.ItemNotFound;
@@ -32,7 +32,7 @@ public class BookingController {
     @PostMapping
     BookingDto postBooking(@RequestHeader("X-Sharer-User-Id") long userId,
                            @RequestBody BookingRequest bookingRequest)
-            throws UserNotFound, ItemNotFound, BookingNotAvailable {
+            throws UserNotFound, ItemNotFound, ItemNotAvailable {
         return bookingService.addBooking(userId, bookingRequest);
     }
 
@@ -85,8 +85,8 @@ public class BookingController {
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(BookingNotAvailable.class)
-    ResponseEntity<Map<String, String>> onBookingNotAvailable(BookingNotAvailable exception) {
+    @ExceptionHandler(ItemNotAvailable.class)
+    ResponseEntity<Map<String, String>> onItemNotAvailable(ItemNotAvailable exception) {
         Map<String, String> body = new HashMap<>();
         body.put("message", exception.getMessage());
         log.info("Booking not available: {}", body);

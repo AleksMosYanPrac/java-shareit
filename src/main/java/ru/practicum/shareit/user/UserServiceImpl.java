@@ -13,12 +13,12 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper mapper;
 
+    @Transactional
     @Override
     public UserDto addNewUser(UserDto user) throws UserExists {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
@@ -29,6 +29,7 @@ public class UserServiceImpl implements UserService {
         return mapper.toUserDto(newUser);
     }
 
+    @Transactional
     @Override
     public UserDto updateUser(long userId, UserDto userData) throws UserNotFound, UserExists {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFound(userId));
@@ -46,7 +47,6 @@ public class UserServiceImpl implements UserService {
         return mapper.toUserDto(user);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public UserDto getUserById(long userId) throws UserNotFound {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFound(userId));

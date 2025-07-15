@@ -13,8 +13,8 @@ import ru.practicum.shareit.item.interfaces.ItemMapper;
 import ru.practicum.shareit.item.interfaces.ItemService;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
-import ru.practicum.shareit.user.dto.UserShort;
 import ru.practicum.shareit.user.exceptions.UserNotFound;
+import ru.practicum.shareit.user.interfaces.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,22 +22,22 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
 
+    private final UserService userService;
+
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+
     private final ItemMapper itemMapper;
     private final CommentMapper commentMapper;
 
     @Transactional
     @Override
     public ItemDto addNewItem(long userId, ItemDto item) throws UserNotFound {
-        Long ownerId = userRepository.getUserById(userId)
-                .map(UserShort::getId)
-                .orElseThrow(() -> new UserNotFound(userId));
+        Long ownerId = userService.getUserById(userId).getId();
         Item newItem = itemMapper.toItem(item);
         newItem.setOwnerId(ownerId);
         return itemMapper.toItemDto(itemRepository.save(newItem));
@@ -46,9 +46,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public ItemDto updateItem(long userId, long itemId, ItemDto item) throws UserNotFound, ItemNotFound {
-        Long ownerId = userRepository.getUserById(userId)
-                .map(UserShort::getId)
-                .orElseThrow(() -> new UserNotFound(userId));
+        Long ownerId = userService.getUserById(userId).getId();
         Item updatingItem = itemRepository.getItemById(itemId).orElseThrow(() -> new ItemNotFound(itemId));
         if (!Objects.equals(ownerId, updatingItem.getOwnerId())) {
             throw new ItemNotFound("Item with ID: " + itemId + " not found for User with ID: " + userId);
@@ -78,15 +76,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getUserItems(long userId) throws UserNotFound {
-        Long ownerId = userRepository.getUserById(userId)
-                .map(UserShort::getId)
-                .orElseThrow(() -> new UserNotFound(userId));
+        Long ownerId = userService.getUserById(userId).getId();
         return itemRepository.findAllByOwnerId(ownerId).stream().map(itemMapper::toItemDto).toList();
     }
 
     @Override
     public List<ItemDto> getAvailableItemsByNameContains(String text) {
-        if (text.isBlank()) {
+        if (Objects.isNull(text) || text.isBlank()) {
             return List.of();
         }
         return itemRepository.findByAvailableTrueAndNameContainingIgnoreCase(text)
@@ -111,7 +107,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private boolean hasUserBookedItem(long userId, long itemId) {
-        return bookingRepository.findAllByBookerIdAndEndBefore(userId, LocalDateTime.now())
-                .stream().anyMatch(b -> b.getItemId() == itemId);
+        return bookingRepository.existsByBookerIdAndItemIdAndEndBefore(userId, itemId, LocalDateTime.now());
     }
 }

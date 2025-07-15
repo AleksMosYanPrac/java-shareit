@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingRequest;
-import ru.practicum.shareit.booking.exceptions.BookingNotAvailable;
+import ru.practicum.shareit.booking.exceptions.ItemNotAvailable;
 import ru.practicum.shareit.booking.exceptions.BookingNotFound;
 import ru.practicum.shareit.booking.interfaces.BookingMapper;
 import ru.practicum.shareit.booking.interfaces.BookingService;
@@ -17,16 +17,17 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.dto.UserShort;
 import ru.practicum.shareit.user.exceptions.UserNotFound;
+import ru.practicum.shareit.user.interfaces.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
+
+    private final UserService userService;
 
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
@@ -36,13 +37,13 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public BookingDto addBooking(long userId,
-                                 BookingRequest bookingDto) throws UserNotFound, ItemNotFound, BookingNotAvailable {
+                                 BookingRequest bookingDto) throws UserNotFound, ItemNotFound, ItemNotAvailable {
         User booker = userRepository.findById(userId).orElseThrow(() -> new UserNotFound(userId));
         Item item = itemRepository
                 .getItemById(bookingDto.getItemId())
                 .orElseThrow(() -> new ItemNotFound(bookingDto.getItemId()));
         if (!item.isAvailable()) {
-            throw new BookingNotAvailable(item.getId());
+            throw new ItemNotAvailable(item.getId());
         }
         Booking newBooking = mapper.toBooking(booker, item, bookingDto);
         newBooking.setStatus(Status.WAITING);
@@ -54,20 +55,17 @@ public class BookingServiceImpl implements BookingService {
     public BookingDto changeBookingStatus(long userId,
                                           long bookingId,
                                           boolean isApproved) throws UserNotFound, BookingNotFound {
-        UserShort owner = userRepository.getUserById(userId)
-                .orElseThrow(() -> new UserNotFound(userId));
+        Long ownerId = userService.getUserById(userId).getId();
         Booking booking = bookingRepository
-                .getBookingByIdAndItemOwnerId(bookingId, owner.getId())
-                .orElseThrow(() -> new BookingNotFound(owner.getId(), bookingId));
+                .getBookingByIdAndItemOwnerId(bookingId, ownerId)
+                .orElseThrow(() -> new BookingNotFound(ownerId, bookingId));
         booking.changeStatus(isApproved);
         return mapper.toBookingDto(bookingRepository.save(booking));
     }
 
     @Override
     public BookingDto getBookingById(long userId, long bookingId) throws UserNotFound, BookingNotFound {
-        Long ownerOrBooker = userRepository.getUserById(userId)
-                .map(UserShort::getId)
-                .orElseThrow(() -> new UserNotFound(userId));
+        Long ownerOrBooker = userService.getUserById(userId).getId();
         Booking booking = bookingRepository
                 .getBookingByBookerIdOrItemOwnerIdAndId(ownerOrBooker, ownerOrBooker, bookingId)
                 .orElseThrow(() -> new BookingNotFound(ownerOrBooker, bookingId));
@@ -76,15 +74,13 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookingsForBooker(long userId, State state) throws UserNotFound {
-        UserShort booker = userRepository.getUserById(userId).orElseThrow(() -> new UserNotFound(userId));
-        List<Booking> list = new ArrayList<>();
-        BooleanExpression byBookerId = QBooking.booking.booker.id.eq(booker.getId());
+        Long bookerId = userService.getUserById(userId).getId();
+        List<BookingDto> list = new ArrayList<>();
+        BooleanExpression byBookerId = QBooking.booking.booker.id.eq(bookerId);
         BooleanExpression expression = getExpressionCaseState(state);
-        bookingRepository.findAll(byBookerId.and(expression)).forEach(list::add);
-        return list.stream()
-                .sorted(Comparator.comparing(Booking::getStart))
-                .map(mapper::toBookingDto)
-                .toList();
+        bookingRepository.findAll(byBookerId.and(expression), QBooking.booking.start.asc())
+                .forEach(b -> list.add(mapper.toBookingDto(b)));
+        return list;
     }
 
     @Override
@@ -92,14 +88,12 @@ public class BookingServiceImpl implements BookingService {
         Long ownerId = userRepository.getUserById(userId)
                 .map(UserShort::getId)
                 .orElseThrow(() -> new UserNotFound(userId));
-        List<Booking> list = new ArrayList<>();
+        List<BookingDto> list = new ArrayList<>();
         BooleanExpression byOwnerId = QBooking.booking.item.ownerId.eq(ownerId);
         BooleanExpression expression = getExpressionCaseState(state);
-        bookingRepository.findAll(byOwnerId.and(expression)).forEach(list::add);
-        return list.stream()
-                .sorted(Comparator.comparing(Booking::getStart))
-                .map(mapper::toBookingDto)
-                .toList();
+        bookingRepository.findAll(byOwnerId.and(expression), QBooking.booking.start.asc())
+                .forEach(b -> list.add(mapper.toBookingDto(b)));
+        return list;
     }
 
     private BooleanExpression getExpressionCaseState(State state) {

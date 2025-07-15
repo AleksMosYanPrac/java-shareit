@@ -5,7 +5,7 @@ import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.booking.State;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingRequest;
-import ru.practicum.shareit.booking.exceptions.BookingNotAvailable;
+import ru.practicum.shareit.booking.exceptions.ItemNotAvailable;
 import ru.practicum.shareit.booking.exceptions.BookingNotFound;
 import ru.practicum.shareit.item.exceptions.ItemNotFound;
 import ru.practicum.shareit.user.exceptions.UserNotFound;
@@ -16,7 +16,7 @@ import java.util.List;
 public interface BookingService {
 
     BookingDto addBooking(long userId,
-                          @Valid BookingRequest bookingRequest) throws UserNotFound, ItemNotFound, BookingNotAvailable;
+                          @Valid BookingRequest bookingRequest) throws UserNotFound, ItemNotFound, ItemNotAvailable;
 
     BookingDto changeBookingStatus(long userId, long bookingId, boolean approved) throws UserNotFound, BookingNotFound;
 
