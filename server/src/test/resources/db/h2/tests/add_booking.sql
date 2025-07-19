@@ -1,0 +1,3 @@
+insert into bookings(id,item_id,booker_id,status,start_time,end_time)
+values (1, 1, 2, 'WAITING', '2025-12-05 10:37:22', '2025-12-06 10:37:22'),
+       (2, 2, 1, 'WAITING', '2025-12-06 10:37:22', '2025-12-07 10:37:22');
