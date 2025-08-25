@@ -69,7 +69,7 @@ public class BookingServiceImpl implements BookingService {
                 .getBookingByIdAndBookerId(bookingId, ownerOrBooker)
                 .orElse(bookingRepository.getBookingByIdAndItemOwnerId(bookingId, ownerOrBooker)
                         .orElse(null));
-        if(Objects.isNull(booking)){
+        if (Objects.isNull(booking)) {
             throw new BookingNotFound(ownerOrBooker, bookingId);
         }
         return mapper.toBookingDto(booking);
