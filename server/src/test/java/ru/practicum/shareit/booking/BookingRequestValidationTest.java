@@ -55,7 +55,7 @@ public class BookingRequestValidationTest {
 
         assertThat(violations).hasSize(1);
         assertThat(violations).extracting(ConstraintViolation::getMessage)
-                .contains("не должно равняться null");
+                .contains("must not be null");
     }
 
     @Test
@@ -69,6 +69,6 @@ public class BookingRequestValidationTest {
 
         assertThat(violations).hasSize(1);
         assertThat(violations).extracting(ConstraintViolation::getMessage)
-                .contains("должно содержать дату, которая еще не наступила");
+                .contains("must be a future date");
     }
 }

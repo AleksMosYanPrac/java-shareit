@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 @ValidDatePeriod
 public class BookingRequest {
 
-    @NotNull
+    @NotNull(message = "must not be null")
     private Long itemId;
 
-    @NotNull
+    @NotNull(message = "must not be null")
     private LocalDateTime start;
 
-    @Future
+    @Future(message = "must be a future date")
     private LocalDateTime end;
 }
