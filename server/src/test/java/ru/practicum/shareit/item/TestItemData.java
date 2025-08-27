@@ -8,7 +8,7 @@ public class TestItemData {
     public static ItemDto getItemDto() {
         ItemDto itemDto = new ItemDto();
         itemDto.setId(1L);
-        itemDto.setName("test");
+        itemDto.setName("item 1");
         itemDto.setAvailable(true);
         itemDto.setDescription("test item");
         return itemDto;

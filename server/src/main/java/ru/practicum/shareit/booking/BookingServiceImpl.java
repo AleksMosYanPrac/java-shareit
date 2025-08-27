@@ -36,15 +36,15 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public BookingDto addBooking(long userId,
-                                 BookingRequest bookingDto) throws UserNotFound, ItemNotFound, ItemNotAvailable {
+                                 BookingRequest bookingRequest) throws UserNotFound, ItemNotFound, ItemNotAvailable {
         User booker = userRepository.findById(userId).orElseThrow(() -> new UserNotFound(userId));
         Item item = itemRepository
-                .getItemById(bookingDto.getItemId())
-                .orElseThrow(() -> new ItemNotFound(bookingDto.getItemId()));
+                .getItemById(bookingRequest.getItemId())
+                .orElseThrow(() -> new ItemNotFound(bookingRequest.getItemId()));
         if (!item.isAvailable()) {
             throw new ItemNotAvailable(item.getId());
         }
-        Booking newBooking = mapper.toBooking(booker, item, bookingDto);
+        Booking newBooking = mapper.toBooking(booker, item, bookingRequest);
         newBooking.setStatus(Status.WAITING);
         return mapper.toBookingDto(bookingRepository.save(newBooking));
     }

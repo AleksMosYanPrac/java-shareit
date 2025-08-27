@@ -88,6 +88,9 @@
 						<configuration>
 							<outputDirectory>target/generated-sources/java</outputDirectory>
 							<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
+							<options>
+								<querydsl.excludedClasses>ru.practicum.shareit.item.Comment</querydsl.excludedClasses>
+							</options>
 						</configuration>
 					</execution>
 				</executions>

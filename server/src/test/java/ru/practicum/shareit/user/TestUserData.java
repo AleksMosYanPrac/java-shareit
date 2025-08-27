@@ -7,8 +7,8 @@ public class TestUserData {
     public static UserDto getUserDto() {
         UserDto userDto = new UserDto();
         userDto.setId(1L);
-        userDto.setName("test");
-        userDto.setEmail("test@email.com");
+        userDto.setName("test_1");
+        userDto.setEmail("a@a1.test");
         return userDto;
     }
 

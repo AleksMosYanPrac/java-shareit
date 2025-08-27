@@ -11,5 +11,5 @@ public interface ItemRequestRepository extends CrudRepository<ItemRequest, Long>
 
     List<ItemRequest> findAllByOrderByCreatedDesc();
 
-    Optional<ItemRequest> getById(long requestId);
+    Optional<ItemRequest> findById(long requestId);
 }
